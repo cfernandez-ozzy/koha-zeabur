@@ -1,1 +1,1 @@
-FROM koha/koha:24.05
+FROM digibib/koha:latest

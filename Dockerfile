@@ -1,1 +1,1 @@
-FROM alpine:latest
+FROM digibib/koha:latest

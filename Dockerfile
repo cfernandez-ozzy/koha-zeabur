@@ -1,1 +1,1 @@
-FROM jacekkow/koha:latest
+FROM jacekkow/koha:stable

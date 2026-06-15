@@ -1,1 +1,1 @@
-FROM jacekkow/koha:23.11
+FROM koha/koha:latest

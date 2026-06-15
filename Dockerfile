@@ -1,1 +1,1 @@
-FROM jacekkow/koha:stable
+FROM jacekkow/koha:23.11

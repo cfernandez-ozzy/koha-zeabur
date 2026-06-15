@@ -1,1 +1,1 @@
-FROM jacekkow/koha:v24.05
+FROM alpine:latest

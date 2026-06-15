@@ -1,1 +1,1 @@
-FROM koha/koha:latest
+FROM mobiusconsortium/koha:latest

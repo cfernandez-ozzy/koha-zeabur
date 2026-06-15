@@ -1,1 +1,1 @@
-FROM digibib/koha:latest
+FROM koha/koha:latest

@@ -11,15 +11,16 @@ services:
 
   koha_web:
     image: digibib/koha:latest
+    # AQUÍ ESTÁ LA CLAVE: 
+    # Movemos el script que causa el error para que Perl no pueda encontrarlo.
+    entrypoint: >
+      bash -c "rm -f /usr/share/perl5/Net/Stomp.pm && /usr/sbin/apache2ctl -D FOREGROUND"
     environment:
       - KOHA_INSTANCE=digitalgmas
       - KOHA_DBHOST=koha_db
       - KOHA_DBNAME=zeabur
       - KOHA_DBUSER=root
       - KOHA_DBPASS=Yb0Urv9n1f3y6wJt5M4LIES7jAo28eKq
-      # DESACTIVAR SERVICIOS PARA EVITAR EL ERROR 500
-      - KOHA_USE_MEMCACHED=0
-      - KOHA_USE_RABBITMQ=0
     ports:
       - "8080:8080"
       - "8081:8081"

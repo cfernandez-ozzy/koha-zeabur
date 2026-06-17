@@ -9,43 +9,45 @@ services:
     networks:
       - koha_network
 
-  koha_memcached:
+  # Nombres exactos para que Koha los encuentre por defecto
+  memcached:
     image: memcached:alpine
     networks:
       - koha_network
 
-  koha_rabbitmq:
+  rabbitmq:
     image: rabbitmq:3-management-alpine
-    command: >
-      bash -c "rabbitmq-plugins enable --offline rabbitmq_stomp rabbitmq_management && rabbitmq-server"
     networks:
       - koha_network
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+    # El plugin debe estar activo
+    command: >
+      bash -c "rabbitmq-plugins enable --offline rabbitmq_stomp rabbitmq_management && rabbitmq-server"
 
   koha_web:
     image: digibib/koha:latest
-    # Eliminamos el sleep porque si esto falla, fallará igual en 15s.
-    # Vamos a forzar el host de rabbitmq a la IP interna del servicio si es necesario, 
-    # pero primero probaremos forzando la variable de entorno de esta forma:
+    # Forzamos la resolución de nombres para que Koha no falle
+    extra_hosts:
+      - "memcached:127.0.0.1"
+      - "rabbitmq:127.0.0.1"
     environment:
       - KOHA_INSTANCE=digitalgmas
       - KOHA_DBHOST=koha_db
       - KOHA_DBNAME=zeabur
       - KOHA_DBUSER=root
       - KOHA_DBPASS=Yb0Urv9n1f3y6wJt5M4LIES7jAo28eKq
-      - MEMCACHED_SERVERS=koha_memcached:11211
-      # Aquí está el cambio: intentamos conectar por IP si el nombre falla
-      - RABBITMQ_HOST=koha_rabbitmq
-      - RABBITMQ_PORT=61613
+      # Variables forzadas
+      - MEMCACHED_SERVERS=memcached:11211
+      - RABBITMQ_HOST=rabbitmq
     ports:
       - "8080:8080"
       - "8081:8081"
     depends_on:
       - koha_db
-      - koha_memcached
-      - koha_rabbitmq
+      - memcached
+      - rabbitmq
     networks:
       - koha_network
 

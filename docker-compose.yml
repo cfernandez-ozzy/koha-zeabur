@@ -14,21 +14,24 @@ services:
   koha_memcached:
     image: memcached:alpine
     networks:
-      - koha_network
+      koha_network:
+        aliases:
+          - memcached # Koha busca 'memcached', ahora lo encontrará aquí
 
   koha_rabbitmq:
     image: rabbitmq:3-management-alpine
-    environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
     command: >
       bash -c "rabbitmq-plugins enable --offline rabbitmq_stomp rabbitmq_management && rabbitmq-server"
     networks:
-      - koha_network
+      koha_network:
+        aliases:
+          - rabbitmq # Koha busca 'rabbitmq', ahora lo encontrará aquí
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
 
   koha_web:
-    image: digibib/koha:latest
-    # El sleep asegura que RabbitMQ termine de activar el plugin STOMP
+    image: digibিল/koha:latest
     entrypoint: >
       bash -c "sleep 15 && /usr/sbin/apache2ctl -D FOREGROUND"
     environment:
@@ -37,11 +40,8 @@ services:
       - KOHA_DBNAME=zeabur
       - KOHA_DBUSER=root
       - KOHA_DBPASS=Yb0Urv9n1f3y6wJt5M4LIES7jAo28eKq
-      - MEMCACHED_SERVERS=koha_memcached:11211
-      - RABBITMQ_HOST=koha_rabbitmq
-      - RABBITMQ_PORT=61613
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASS=guest
+      - MEMCACHED_SERVERS=memcached:11211
+      - RABBITMQ_HOST=rabbitmq
     ports:
       - "8080:8080"
       - "8081:8081"

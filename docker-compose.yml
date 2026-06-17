@@ -6,42 +6,39 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: Yb0Urv9n1f3y6wJt5M4LIES7jAo28eKq
       MYSQL_DATABASE: zeabur
-    volumes:
-      - koha_db_data:/var/lib/mysql
     networks:
       - koha_network
 
   koha_memcached:
     image: memcached:alpine
     networks:
-      koha_network:
-        aliases:
-          - memcached # Koha busca 'memcached', ahora lo encontrará aquí
+      - koha_network
 
   koha_rabbitmq:
     image: rabbitmq:3-management-alpine
     command: >
       bash -c "rabbitmq-plugins enable --offline rabbitmq_stomp rabbitmq_management && rabbitmq-server"
     networks:
-      koha_network:
-        aliases:
-          - rabbitmq # Koha busca 'rabbitmq', ahora lo encontrará aquí
+      - koha_network
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
 
   koha_web:
-    image: digibিল/koha:latest
-    entrypoint: >
-      bash -c "sleep 15 && /usr/sbin/apache2ctl -D FOREGROUND"
+    image: digibib/koha:latest
+    # Eliminamos el sleep porque si esto falla, fallará igual en 15s.
+    # Vamos a forzar el host de rabbitmq a la IP interna del servicio si es necesario, 
+    # pero primero probaremos forzando la variable de entorno de esta forma:
     environment:
       - KOHA_INSTANCE=digitalgmas
       - KOHA_DBHOST=koha_db
       - KOHA_DBNAME=zeabur
       - KOHA_DBUSER=root
       - KOHA_DBPASS=Yb0Urv9n1f3y6wJt5M4LIES7jAo28eKq
-      - MEMCACHED_SERVERS=memcached:11211
-      - RABBITMQ_HOST=rabbitmq
+      - MEMCACHED_SERVERS=koha_memcached:11211
+      # Aquí está el cambio: intentamos conectar por IP si el nombre falla
+      - RABBITMQ_HOST=koha_rabbitmq
+      - RABBITMQ_PORT=61613
     ports:
       - "8080:8080"
       - "8081:8081"
@@ -51,9 +48,6 @@ services:
       - koha_rabbitmq
     networks:
       - koha_network
-
-volumes:
-  koha_db_data:
 
 networks:
   koha_network:

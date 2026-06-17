@@ -18,6 +18,9 @@ services:
 
   koha_rabbitmq:
     image: rabbitmq:3-management-alpine
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
     command: >
       bash -c "rabbitmq-plugins enable --offline rabbitmq_stomp rabbitmq_management && rabbitmq-server"
     networks:
@@ -25,6 +28,9 @@ services:
 
   koha_web:
     image: digibib/koha:latest
+    # El sleep asegura que RabbitMQ termine de activar el plugin STOMP
+    entrypoint: >
+      bash -c "sleep 15 && /usr/sbin/apache2ctl -D FOREGROUND"
     environment:
       - KOHA_INSTANCE=digitalgmas
       - KOHA_DBHOST=koha_db
@@ -33,6 +39,9 @@ services:
       - KOHA_DBPASS=Yb0Urv9n1f3y6wJt5M4LIES7jAo28eKq
       - MEMCACHED_SERVERS=koha_memcached:11211
       - RABBITMQ_HOST=koha_rabbitmq
+      - RABBITMQ_PORT=61613
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
     ports:
       - "8080:8080"
       - "8081:8081"

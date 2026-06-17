@@ -1,1 +1,51 @@
+version: '3.8'
 
+services:
+  koha_db:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: Yb0Urv9n1f3y6wJt5M4LIES7jAo28eKq
+      MYSQL_DATABASE: zeabur
+    volumes:
+      - koha_db_data:/var/lib/mysql
+    networks:
+      - koha_network
+
+  koha_memcached:
+    image: memcached:alpine
+    networks:
+      - koha_network
+
+  koha_rabbitmq:
+    image: rabbitmq:3-management-alpine
+    command: >
+      bash -c "rabbitmq-plugins enable --offline rabbitmq_stomp rabbitmq_management && rabbitmq-server"
+    networks:
+      - koha_network
+
+  koha_web:
+    image: digibib/koha:latest
+    environment:
+      - KOHA_INSTANCE=digitalgmas
+      - KOHA_DBHOST=koha_db
+      - KOHA_DBNAME=zeabur
+      - KOHA_DBUSER=root
+      - KOHA_DBPASS=Yb0Urv9n1f3y6wJt5M4LIES7jAo28eKq
+      - MEMCACHED_SERVERS=koha_memcached:11211
+      - RABBITMQ_HOST=koha_rabbitmq
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    depends_on:
+      - koha_db
+      - koha_memcached
+      - koha_rabbitmq
+    networks:
+      - koha_network
+
+volumes:
+  koha_db_data:
+
+networks:
+  koha_network:
+    driver: bridge
